@@ -7,7 +7,7 @@
 [![GitHub package version](https://img.shields.io/github/package-json/v/ux-ui-pro/zero-hour.svg)](https://github.com/ux-ui-pro/zero-hour)
 [![NPM Downloads](https://img.shields.io/npm/dm/zero-hour.svg?style=flat)](https://www.npmjs.org/package/zero-hour)
 
-<sup>Web Component • TypeScript • ESM/CJS</sup>
+<a href="https://codepen.io/ux-ui/pen/MYyMpPw">Demo</a>
 </div>
 <br>
 
