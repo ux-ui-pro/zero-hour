@@ -117,6 +117,7 @@ el?.start();
 | Option (attribute) | Type | Default | Description |
 |:--------------------:|:-----------------------:|:------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `digits-url` | `string` | — | URL to the digits sprite sheet. **Required** for the graphical display (otherwise only a text fallback is updated in the a11y layer). |
+| `digits-layout` | `"vertical" \| "horizontal"` | `"vertical"` | Digits sprite layout. Default expects frames stacked vertically; set to `"horizontal"` for left-to-right sprites. |
 | `separator-url` | `string` | `null` | URL to the separator sprite (e.g. a colon). If omitted, separators are hidden. |
 | `autostart` | `boolean` | `true` | Auto-start on connect. Can be a boolean attribute (`autostart`) or a string (`autostart="false"`). |
 | `date` | `YYYY-MM-DD` | — | Target date. Without `date` the timer resolves to zero. |

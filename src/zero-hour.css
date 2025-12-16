@@ -1,7 +1,7 @@
 :host {
   display: block;
   width: 100%;
-  container-type: size;
+  container-type: inline-size;
   overflow: hidden;
 }
 
@@ -37,8 +37,9 @@
   width: 100%;
   background-image: var(--digits-url);
   background-repeat: no-repeat;
-  background-size: 100% calc(var(--zh-frames, 10) * 100%);
-  background-position: 0 calc(var(--sheet-index, 0) * 100% / (var(--zh-frames, 10) - 1));
+  /* Digits sprite is horizontal (frames left-to-right). */
+  background-size: calc(var(--zh-frames, 10) * 100%) 100%;
+  background-position: calc(var(--sheet-index, 0) * 100% / (var(--zh-frames, 10) - 1)) 0;
 }
 
 .zh__a11y {
