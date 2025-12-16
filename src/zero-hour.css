@@ -1,0 +1,52 @@
+:host {
+  display: block;
+  width: 100%;
+  container-type: size;
+  overflow: hidden;
+}
+
+.zh {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.zh__group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto;
+  gap: 0;
+  width: 100%;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.zh__sep {
+  flex: 0 0 var(--zh-sep-width, 3%);
+  width: var(--zh-sep-width, 3%);
+  background-image: var(--sep-url);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+}
+
+.zh__digit {
+  aspect-ratio: 9 / 12;
+  width: 100%;
+  background-image: var(--digits-url);
+  background-repeat: no-repeat;
+  background-size: 100% calc(var(--zh-frames, 10) * 100%);
+  background-position: 0 calc(var(--sheet-index, 0) * 100% / (var(--zh-frames, 10) - 1));
+}
+
+.zh__a11y {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}

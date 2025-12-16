@@ -1,0 +1,75 @@
+{
+  "name": "zero-hour",
+  "version": "1.0.0-dev.1",
+  "description": "Tiny countdown Web Component. Registers <countdown-timer> that renders a configurable DD:HH:MM:SS countdown to a target date/time (optional UTC offset) and fires a done event at zero.",
+  "author": "ux-ui.pro",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ux-ui-pro/zero-hour.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ux-ui-pro/zero-hour/issues"
+  },
+  "homepage": "https://github.com/ux-ui-pro/zero-hour",
+  "sideEffects": false,
+  "scripts": {
+    "clean": "rimraf dist",
+    "build": "vite build",
+    "verify": "yarn lint && yarn typecheck",
+    "lint": "biome check src",
+    "lint:fix": "biome check --write src",
+    "format": "biome format --write src",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "source": "src/index.ts",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.es.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.cjs.js"
+    },
+    "./zero-hour.css": "./dist/zero-hour.css",
+    "./dist/*": "./dist/*"
+  },
+  "files": [
+    "dist/"
+  ],
+  "devDependencies": {
+    "@biomejs/biome": "2.3.9",
+    "@types/node": "25.0.2",
+    "lightningcss": "1.30.2",
+    "rimraf": "6.1.2",
+    "typescript": "5.9.3",
+    "vite": "7.3.0",
+    "vite-plugin-dts": "4.5.4"
+  },
+  "keywords": [
+    "typescript",
+    "frontend",
+    "library",
+    "countdown",
+    "countdown timer",
+    "timer",
+    "web component",
+    "web-component",
+    "custom elements",
+    "custom-elements",
+    "shadow dom",
+    "shadow-dom",
+    "dom",
+    "ui",
+    "component",
+    "digital",
+    "sprite",
+    "date",
+    "time",
+    "utc",
+    "accessibility",
+    "a11y",
+    "zero-hour"
+  ]
+}
