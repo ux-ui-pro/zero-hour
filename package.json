@@ -1,6 +1,6 @@
 {
   "name": "zero-hour",
-  "version": "1.0.0-dev.3",
+  "version": "1.0.0",
   "description": "Tiny countdown Web Component. Registers <countdown-timer> that renders a configurable DD:HH:MM:SS countdown to a target date/time (optional UTC offset) and fires a done event at zero.",
   "author": "ux-ui.pro",
   "license": "MIT",

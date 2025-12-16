@@ -24,8 +24,8 @@
 }
 
 .zh__sep {
-  flex: 0 0 var(--zh-sep-width, 3%);
-  width: var(--zh-sep-width, 3%);
+  flex: 0 0 var(--zh-sep-width, 4%);
+  width: var(--zh-sep-width, 4%);
   background-image: var(--sep-url);
   background-repeat: no-repeat;
   background-position: center;
