@@ -43,7 +43,7 @@ import { initCountdownTimers } from 'zero-hour';
   separator-url="/sprites/sep.webp"
   date="2025-12-31"
   time="23:59:59"
-  utc="UTC+03:00"
+  utc="+03:00"
 ></countdown-timer>
 ```
 
@@ -106,7 +106,7 @@ el?.start();
   separator-url="/sprites/sep.webp"
   date="2025-12-31"
   time="23:59:59"
-  utc="UTC+0"
+  utc="+03:00"
   units="h:m:s"
 ></countdown-timer>
 ```

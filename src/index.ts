@@ -117,6 +117,32 @@ function parseHmsTime(raw: string | null): { hours: number; minutes: number; sec
   };
 }
 
+function parseHmsTimeStrict(
+  raw: string | null,
+): { hours: number; minutes: number; seconds: number } | null {
+  if (raw == null) return null;
+
+  const trimmed = raw.trim();
+
+  if (!trimmed) return null;
+
+  const m = trimmed.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+
+  if (!m) return null;
+
+  const hours = Number(m[1]);
+  const minutes = Number(m[2]);
+  const seconds = Number(m[3] ?? '0');
+
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes) || !Number.isFinite(seconds))
+    return null;
+  if (hours < 0 || hours > 23) return null;
+  if (minutes < 0 || minutes > 59) return null;
+  if (seconds < 0 || seconds > 59) return null;
+
+  return { hours, minutes, seconds };
+}
+
 function parseUtcOffsetMinutes(raw: string | null): number | null {
   if (raw == null) return null;
 
@@ -150,25 +176,41 @@ function parseUtcOffsetMinutes(raw: string | null): number | null {
   return sign * totalMinutes;
 }
 
-function computeTargetEpochFromDateTimeAttrs(el: HTMLElement): number | null {
-  const dateRaw = el.getAttribute('date');
-  const date = parseYmdDate(dateRaw);
+type ZeroHourQueryOverrides = {
+  date?: string;
+  time?: string;
+  utc?: string;
+  units?: string;
+};
 
-  if (!date) return null;
+function readZeroHourQueryOverrides(): ZeroHourQueryOverrides | null {
+  if (typeof window === 'undefined') return null;
+  if (!('location' in window)) return null;
 
-  const time = parseHmsTime(el.getAttribute('time'));
-  const offsetMinutes = parseUtcOffsetMinutes(el.getAttribute('utc')) ?? 0;
+  const search = window.location?.search ?? '';
 
-  const utcMs = Date.UTC(
-    date.year,
-    date.month - 1,
-    date.day,
-    time.hours,
-    time.minutes,
-    time.seconds,
-  );
+  if (!search) return null;
 
-  return utcMs - offsetMinutes * 60 * 1000;
+  const sp = new URLSearchParams(search);
+  const overrides: ZeroHourQueryOverrides = {};
+
+  const date = sp.get('date')?.trim();
+
+  if (date) overrides.date = date;
+
+  const time = sp.get('time')?.trim();
+
+  if (time) overrides.time = time;
+
+  const utc = sp.get('utc')?.trim();
+
+  if (utc) overrides.utc = utc;
+
+  const units = sp.get('units')?.trim();
+
+  if (units) overrides.units = units;
+
+  return Object.keys(overrides).length ? overrides : null;
 }
 
 function parseUnitsPattern(raw: string | null): {
@@ -314,20 +356,46 @@ class ZeroHour extends HTMLElement {
   }
 
   private readAttributes(): void {
+    const query = readZeroHourQueryOverrides();
+
     this.digitsUrl = this.getAttribute('digits-url');
     this.separatorUrl = this.getAttribute('separator-url');
     this.autostart = hasBoolAttr(this, 'autostart', true);
 
-    const units = parseUnitsPattern(this.getAttribute('units'));
+    const units = parseUnitsPattern(query?.units ?? this.getAttribute('units'));
 
     this.showDays = units.showDays;
     this.showHours = units.showHours;
     this.showMinutes = units.showMinutes;
     this.showSeconds = units.showSeconds;
 
-    const composedTarget = computeTargetEpochFromDateTimeAttrs(this);
+    const dateFromAttr = parseYmdDate(this.getAttribute('date'));
+    const dateFromQuery = parseYmdDate(query?.date ?? null);
+    const date = dateFromQuery ?? dateFromAttr;
 
-    this.targetEpochMs = composedTarget;
+    const timeFromAttr = parseHmsTime(this.getAttribute('time'));
+    const timeFromQuery = parseHmsTimeStrict(query?.time ?? null);
+    const time = timeFromQuery ?? timeFromAttr;
+
+    const offsetMinutesFromAttr = parseUtcOffsetMinutes(this.getAttribute('utc'));
+    const offsetMinutesFromQuery = parseUtcOffsetMinutes(query?.utc ?? null);
+    const offsetMinutes = offsetMinutesFromQuery ?? offsetMinutesFromAttr ?? 0;
+
+    if (!date) {
+      this.targetEpochMs = null;
+    } else {
+      const utcMs = Date.UTC(
+        date.year,
+        date.month - 1,
+        date.day,
+        time.hours,
+        time.minutes,
+        time.seconds,
+      );
+
+      this.targetEpochMs = utcMs - offsetMinutes * 60 * 1000;
+    }
+
     this.durationMs = 0;
 
     if (!this.digitsUrl) {
@@ -515,7 +583,6 @@ class ZeroHour extends HTMLElement {
 
     const start = this.startEpochMs ?? Date.now();
     const elapsedMs = clampNonNegative(Date.now() - start);
-
     const shownMs = clampNonNegative(durationMs - elapsedMs);
 
     const { d, h, m, s, totalSec } = msToDhms(shownMs);
