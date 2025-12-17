@@ -336,12 +336,12 @@ class ZeroHour extends HTMLElement {
       return;
     }
 
-    this.rootEl.style.setProperty('--digits-url', `url("${this.digitsUrl}")`);
+    this.rootEl.style.setProperty('--zh-digits-url', `url("${this.digitsUrl}")`);
 
     if (this.separatorUrl) {
-      this.rootEl.style.setProperty('--sep-url', `url("${this.separatorUrl}")`);
+      this.rootEl.style.setProperty('--zh-sep-url', `url("${this.separatorUrl}")`);
     } else {
-      this.rootEl.style.removeProperty('--sep-url');
+      this.rootEl.style.removeProperty('--zh-sep-url');
     }
 
     this.applyUnitsVisibility();
@@ -496,7 +496,7 @@ class ZeroHour extends HTMLElement {
       const el = groupEl.children[i] as HTMLElement;
       const idx = digitToSheetIndex(chars[i]);
 
-      el.style.setProperty('--sheet-index', String(idx));
+      el.style.setProperty('--zh-sheet-index', String(idx));
     }
   }
 

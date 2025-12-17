@@ -26,20 +26,20 @@
 .zh__sep {
   flex: 0 0 var(--zh-sep-width, 4%);
   width: var(--zh-sep-width, 4%);
-  background-image: var(--sep-url);
+  background-image: var(--zh-sep-url);
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
 }
 
 .zh__digit {
-  aspect-ratio: 9 / 12;
+  aspect-ratio: var(--zh-digit-aspect, 9 / 12);
   width: 100%;
-  background-image: var(--digits-url);
+  background-image: var(--zh-digits-url);
   background-repeat: no-repeat;
   /* Digits sprite is horizontal (frames left-to-right). */
-  background-size: calc(var(--zh-frames, 10) * 100%) 100%;
-  background-position: calc(var(--sheet-index, 0) * 100% / (var(--zh-frames, 10) - 1)) 0;
+  background-size: calc(var(--zh-digits-frames, 10) * 100%) 100%;
+  background-position: calc(var(--zh-sheet-index, 0) * 100% / (var(--zh-digits-frames, 10) - 1)) 0;
 }
 
 .zh__a11y {
