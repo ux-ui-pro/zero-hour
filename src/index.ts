@@ -354,6 +354,8 @@ class ZeroHour extends HTMLElement {
   }
 
   private readAttributes(): void {
+    if (!this.rootEl) this.render();
+
     const query = readZeroHourQueryOverrides();
 
     this.digitsUrl = this.getAttribute('digits-url');
@@ -599,6 +601,7 @@ class ZeroHour extends HTMLElement {
     if (this.doneFired) return;
 
     this.doneFired = true;
+
     this.dispatchEvent(new CustomEvent('done'));
   }
 
