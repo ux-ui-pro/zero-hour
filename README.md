@@ -117,7 +117,6 @@ el?.start();
 | Option (attribute) | Type | Default | Description |
 |:--------------------:|:-----------------------:|:------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `digits-url` | `string` | — | URL to the digits sprite sheet. **Required** for the graphical display (otherwise only a text fallback is updated in the a11y layer). |
-| `digits-layout` | `"vertical" \| "horizontal"` | `"vertical"` | Digits sprite layout. Default expects frames stacked vertically; set to `"horizontal"` for left-to-right sprites. |
 | `separator-url` | `string` | `null` | URL to the separator sprite (e.g. a colon). If omitted, separators are hidden. |
 | `autostart` | `boolean` | `true` | Auto-start on connect. Can be a boolean attribute (`autostart`) or a string (`autostart="false"`). |
 | `date` | `YYYY-MM-DD` | — | Target date. Without `date` the timer resolves to zero. |
@@ -146,6 +145,8 @@ el?.start();
 - Days render as **two digits** and are capped at **99**.
 - `units` controls which groups (d/h/m/s) are visible. Separators are auto-hidden when `separator-url` is not set, or when a separator is not needed between visible groups.
 - The `done` event fires once per run (after `reset()` it can fire again).
+- Спрайт цифр должен быть горизонтальным, кадры слева направо: `0,1,2,3,4,5,6,7,8,9`. Индекс кадра соответствует самой цифре.
+- Если `digits-url` не задан, графические цифры не отображаются — обновляется только текст в скрытом a11y-элементе.
 
 <br>
 
