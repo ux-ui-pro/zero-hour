@@ -145,8 +145,7 @@ el?.start();
 - Days render as **two digits** and are capped at **99**.
 - `units` controls which groups (d/h/m/s) are visible. Separators are auto-hidden when `separator-url` is not set, or when a separator is not needed between visible groups.
 - The `done` event fires once per run (after `reset()` it can fire again).
-- Спрайт цифр должен быть горизонтальным, кадры слева направо: `0,1,2,3,4,5,6,7,8,9`. Индекс кадра соответствует самой цифре.
-- Если `digits-url` не задан, графические цифры не отображаются — обновляется только текст в скрытом a11y-элементе.
+- Digit sprite must be horizontal, frames left-to-right: `0,1,2,3,4,5,6,7,8,9`. The frame index equals the digit.
 
 <br>
 
