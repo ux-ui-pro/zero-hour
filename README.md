@@ -55,6 +55,8 @@ initCountdownTimers({
   selector: 'countdown-timer',
   onDone: (el) => {
     // The component dispatches: el.dispatchEvent(new CustomEvent('done'))
+    // Note: if the timer is already complete (e.g. user opened the page after the target time),
+    // `initCountdownTimers` will call `onDone` immediately (catch-up).
     el.classList.add('is-done');
   },
   // Optional styles:
@@ -130,11 +132,12 @@ el?.start();
 
 | Method | Description |
 |-------------------|--------------------------------------------------------------------------------------------------|
-| `initCountdownTimers({ selector?, onDone?, stylesheet? }): HTMLElement[]` | Finds elements by selector (default: `countdown-timer`), subscribes to the `done` event (when `onDone` is provided), and optionally applies styles to each element (`stylesheet?: CSSStyleSheet \| string \| null`). When a string is provided, it is applied via `adoptedStyleSheets` when supported, otherwise via a `<style>` fallback inside the shadow root. |
+| `initCountdownTimers({ selector?, onDone?, stylesheet? }): HTMLElement[]` | Finds elements by selector (default: `countdown-timer`), subscribes to the `done` event (when `onDone` is provided), and calls `onDone` immediately if a timer is already complete at init time (catch-up). Also optionally applies styles to each element (`stylesheet?: CSSStyleSheet \| string \| null`). When a string is provided, it is applied via `adoptedStyleSheets` when supported, otherwise via a `<style>` fallback inside the shadow root. |
 | `start(): void` | Starts/restarts the countdown (only runs when `digits-url` is set). |
 | `stop(): void` | Stops the timer and clears the scheduled tick. |
 | `reset(): void` | Clears the “done fired” flag and either starts again (if `autostart=true`) or renders a static initial value. |
 | `isRunning(): boolean` | Returns `true` if the timer is running and the next tick is scheduled. |
+| `isDone(): boolean` | Returns `true` if the computed target moment is in the past (logically complete), regardless of whether a `done` event listener was attached in time. |
 | `adoptStylesheet(sheet: CSSStyleSheet): void` | Replaces `adoptedStyleSheets` inside the component’s shadow root. |
 
 <br>

@@ -345,12 +345,18 @@ class ZeroHour extends HTMLElement {
     this.doneFired = false;
 
     if (this.autostart) this.start();
-
     else this.renderStaticInitial();
   }
 
   public isRunning(): boolean {
     return this.startEpochMs != null && this.nextTickTimeout != null;
+  }
+
+  public isDone(): boolean {
+    if (!this.digitsUrl) return false;
+    if (this.targetEpochMs == null) return false;
+
+    return Date.now() >= this.targetEpochMs;
   }
 
   private readAttributes(): void {
@@ -684,8 +690,21 @@ export function initCountdownTimers(
   const elements = Array.from(document.querySelectorAll<HTMLElement>(selector));
 
   if (onDone) {
+    const notified = new WeakSet<HTMLElement>();
+    const notifyOnce = (el: HTMLElement) => {
+      if (notified.has(el)) return;
+      notified.add(el);
+      onDone(el);
+    };
+
     elements.forEach((el) => {
-      el.addEventListener('done', () => onDone(el));
+      el.addEventListener('done', () => notifyOnce(el));
+
+      const zh = el as unknown as ZeroHour;
+
+      if (typeof (zh as unknown as { isDone?: unknown }).isDone === 'function' && zh.isDone()) {
+        notifyOnce(el);
+      }
     });
   }
 
