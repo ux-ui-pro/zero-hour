@@ -3,13 +3,11 @@ import DEFAULT_CSS_TEXT from './zero-hour.css?raw';
 export const zeroHourCssText: string = DEFAULT_CSS_TEXT;
 
 function digitToSheetIndex(d: string): number {
-  if (d === '0') return 9;
-
   const n = d.charCodeAt(0) - 48;
 
-  if (n >= 1 && n <= 9) return n - 1;
+  if (n >= 0 && n <= 9) return n;
 
-  return 9;
+  return 0;
 }
 
 function clampNonNegative(n: number): number {
