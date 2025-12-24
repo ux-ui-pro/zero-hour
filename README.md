@@ -125,6 +125,7 @@ el?.start();
 | `time` | `HH:MM[:SS]` | `00:00:00` | Target time. |
 | `utc` | `UTC±H[:MM]` or `±H[:MM]` | `UTC+0` | UTC offset used to compute the target moment. Examples: `utc="UTC+03:00"`, `utc="UTC-5"`. |
 | `units` | `string` | `"d:h:m:s"` | Visible groups pattern using `d`, `h`, `m`, `s` separated by `:` (e.g. `"h:m:s"`). Empty/invalid value falls back to showing all. |
+| `mode` | `"static"` \| `"scroll"` | `"static"` | Digit transition mode. `scroll` animates digits (rolling effect), `static` swaps without scroll. |
 
 <br>
 
@@ -147,6 +148,7 @@ el?.start();
 - Updates tick **exactly on second boundaries** (schedules the next tick to the next full second) to keep the display stable.
 - Days render as **two digits** and are capped at **99**.
 - `units` controls which groups (d/h/m/s) are visible. Separators are auto-hidden when `separator-url` is not set, or when a separator is not needed between visible groups.
+- `mode="scroll"` enables rolling digit transitions; default is `static` (no scroll).
 - The `done` event fires once per run (after `reset()` it can fire again).
 - Digit sprite must be horizontal, frames left-to-right: `0,1,2,3,4,5,6,7,8,9`. The frame index equals the digit.
 

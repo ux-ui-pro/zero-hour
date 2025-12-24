@@ -96,7 +96,11 @@ function parseYmdDate(raw: string | null): { year: number; month: number; day: n
   return { year, month, day };
 }
 
-function parseHmsTime(raw: string | null): { hours: number; minutes: number; seconds: number } {
+function parseHmsTime(raw: string | null): {
+  hours: number;
+  minutes: number;
+  seconds: number;
+} {
   if (raw == null) return { ...ZERO_TIME };
 
   const trimmed = raw.trim();
@@ -134,6 +138,7 @@ function parseHmsTimeStrict(
 
   if (!Number.isFinite(hours) || !Number.isFinite(minutes) || !Number.isFinite(seconds))
     return null;
+
   if (hours < 0 || hours > 23) return null;
   if (minutes < 0 || minutes > 59) return null;
   if (seconds < 0 || seconds > 59) return null;
@@ -257,6 +262,7 @@ class ZeroHour extends HTMLElement {
     'time',
     'utc',
     'units',
+    'mode',
   ];
 
   private readonly shadow = this.attachShadow({ mode: 'open' });
@@ -288,13 +294,14 @@ class ZeroHour extends HTMLElement {
   private showHours = true;
   private showMinutes = true;
   private showSeconds = true;
+  private mode: 'static' | 'scroll' = 'static';
+  private hasDigitsRendered = false;
 
   connectedCallback(): void {
     this.render();
     this.readAttributes();
 
     if (this.autostart) this.start();
-
     else this.renderStaticInitial();
   }
 
@@ -315,7 +322,6 @@ class ZeroHour extends HTMLElement {
     this.doneFired = false;
 
     if (wasRunning && this.autostart) this.start();
-
     else this.renderStaticInitial();
   }
 
@@ -327,6 +333,7 @@ class ZeroHour extends HTMLElement {
     this.durationMs = this.targetEpochMs != null ? this.targetEpochMs - Date.now() : 0;
 
     this.startEpochMs = Date.now();
+
     this.tick();
     this.scheduleNextSecondBoundary();
   }
@@ -367,6 +374,10 @@ class ZeroHour extends HTMLElement {
     this.digitsUrl = this.getAttribute('digits-url');
     this.separatorUrl = this.getAttribute('separator-url');
     this.autostart = hasBoolAttr(this, 'autostart', true);
+
+    const modeRaw = (this.getAttribute('mode') ?? '').trim().toLowerCase();
+
+    this.mode = modeRaw === 'scroll' ? 'scroll' : 'static';
 
     const units = parseUnitsPattern(query?.units ?? this.getAttribute('units'));
 
@@ -419,6 +430,7 @@ class ZeroHour extends HTMLElement {
     }
 
     this.applyUnitsVisibility();
+    this.rootEl.classList.toggle('zh--mode-scroll', this.mode === 'scroll');
   }
 
   private renderStaticInitial(): void {
@@ -427,9 +439,9 @@ class ZeroHour extends HTMLElement {
       const diffMs = clampNonNegative(this.targetEpochMs - now);
       const { d, h, m, s } = msToDhms(diffMs);
 
-      this.setDigits({ d, h, m, s });
+      this.setDigits({ d, h, m, s }, false);
     } else {
-      this.setDigits({ d: 0, h: 0, m: 0, s: 0 });
+      this.setDigits({ d: 0, h: 0, m: 0, s: 0 }, false);
     }
   }
 
@@ -478,7 +490,8 @@ class ZeroHour extends HTMLElement {
 
     this.shadow.append(this.rootEl);
 
-    this.setDigits({ d: 0, h: 0, m: 0, s: 0 });
+    this.setDigits({ d: 0, h: 0, m: 0, s: 0 }, false);
+    this.hasDigitsRendered = false;
   }
 
   private setTextFallback(text: string): void {
@@ -528,16 +541,23 @@ class ZeroHour extends HTMLElement {
     this.sep2El.style.display = sepUsed[2] ? '' : 'none';
   }
 
-  private setDigits({ d, h, m, s }: { d: number; h: number; m: number; s: number }): void {
+  private setDigits(
+    { d, h, m, s }: { d: number; h: number; m: number; s: number },
+    animate = true,
+  ): void {
+    let shouldAnimate = animate;
+
+    if (!this.hasDigitsRendered) shouldAnimate = false;
+
     const daysChars = toDigitChars(Math.min(d, 99), 2);
     const hoursChars = toDigitChars(h, 2);
     const minChars = [...pad2(m)];
     const secChars = [...pad2(s)];
 
-    this.syncDigitGroup(this.daysEl, daysChars);
-    this.syncDigitGroup(this.hoursEl, hoursChars);
-    this.syncDigitGroup(this.minutesEl, minChars);
-    this.syncDigitGroup(this.secondsEl, secChars);
+    this.syncDigitGroup(this.daysEl, daysChars, shouldAnimate);
+    this.syncDigitGroup(this.hoursEl, hoursChars, shouldAnimate);
+    this.syncDigitGroup(this.minutesEl, minChars, shouldAnimate);
+    this.syncDigitGroup(this.secondsEl, secChars, shouldAnimate);
 
     const parts: string[] = [];
 
@@ -547,15 +567,14 @@ class ZeroHour extends HTMLElement {
     if (this.showSeconds) parts.push(secChars.join(''));
 
     this.a11yEl.textContent = parts.length ? parts.join(':') : '—';
+    this.hasDigitsRendered = true;
   }
 
-  private syncDigitGroup(groupEl: HTMLElement, chars: string[]): void {
+  private syncDigitGroup(groupEl: HTMLElement, chars: string[], animate: boolean): void {
     while (groupEl.children.length < chars.length) {
-      const d = document.createElement('span');
+      const idx = groupEl.children.length;
 
-      d.className = 'zh__digit';
-
-      groupEl.appendChild(d);
+      groupEl.appendChild(this.createDigitSlot(chars[idx]));
     }
 
     while (groupEl.children.length > chars.length) {
@@ -568,10 +587,167 @@ class ZeroHour extends HTMLElement {
 
     for (let i = 0; i < chars.length; i++) {
       const el = groupEl.children[i] as HTMLElement;
-      const idx = digitToSheetIndex(chars[i]);
 
-      el.style.setProperty('--zh-sheet-index', String(idx));
+      this.syncDigitSlot(el, chars[i], animate);
     }
+  }
+
+  private createDigitSlot(char: string): HTMLElement {
+    const digit = document.createElement('span');
+
+    digit.className = 'zh__digit';
+
+    const track = document.createElement('span');
+
+    track.className = 'zh__digit-track';
+
+    const face = this.createDigitFace(char);
+
+    face.classList.add('zh__digit-face--current');
+
+    track.append(face);
+    digit.append(track);
+
+    return digit;
+  }
+
+  private createDigitFace(char: string): HTMLElement {
+    const face = document.createElement('span');
+
+    face.className = 'zh__digit-face';
+
+    this.setFaceDigit(face, char);
+
+    return face;
+  }
+
+  private setFaceDigit(face: HTMLElement, char: string): void {
+    face.dataset.zhDigit = char;
+
+    const idx = digitToSheetIndex(char);
+
+    face.style.setProperty('--zh-sheet-index', String(idx));
+  }
+
+  private ensureDigitTrack(slot: HTMLElement): HTMLElement {
+    let track = slot.querySelector<HTMLElement>('.zh__digit-track');
+
+    if (!track) {
+      track = document.createElement('span');
+      track.className = 'zh__digit-track';
+      slot.innerHTML = '';
+      slot.append(track);
+    }
+
+    return track;
+  }
+
+  private getOrCreateCurrentFace(track: HTMLElement, fallbackChar: string): HTMLElement {
+    let current = track.querySelector<HTMLElement>('.zh__digit-face--current');
+
+    if (!current) {
+      const existing = track.querySelector<HTMLElement>('.zh__digit-face');
+
+      current = existing ?? this.createDigitFace(fallbackChar);
+      current.classList.add('zh__digit-face--current');
+
+      this.setFaceDigit(current, current.dataset.zhDigit ?? fallbackChar);
+
+      track.innerHTML = '';
+      track.append(current);
+    } else {
+      const faces = Array.from(track.children);
+
+      for (const face of faces) {
+        if (face !== current) track.removeChild(face);
+      }
+    }
+
+    return current;
+  }
+
+  private cleanupTrack(track: HTMLElement, faceToKeep: HTMLElement): void {
+    if (!track.contains(faceToKeep)) return;
+
+    const faces = Array.from(track.children);
+
+    for (const face of faces) {
+      if (face !== faceToKeep) track.removeChild(face);
+    }
+
+    faceToKeep.classList.remove('zh__digit-face--next');
+    faceToKeep.classList.add('zh__digit-face--current');
+
+    track.style.transition = this.mode === 'scroll' ? '' : 'none';
+    track.style.transform = 'translateY(0)';
+  }
+
+  private parseTransitionMs(el: HTMLElement): number {
+    const style = window.getComputedStyle(el);
+    const durations = style.transitionDuration.split(',').map((v) => v.trim());
+    const delays = style.transitionDelay.split(',').map((v) => v.trim());
+
+    const toMs = (val: string): number => {
+      if (!val) return 0;
+      if (val.endsWith('ms')) return Number.parseFloat(val);
+      if (val.endsWith('s')) return Number.parseFloat(val) * 1000;
+
+      return Number.parseFloat(val) || 0;
+    };
+
+    const d = durations[0] ? toMs(durations[0]) : 0;
+    const delay = delays[0] ? toMs(delays[0]) : 0;
+
+    return d + delay;
+  }
+
+  private animateDigitChange(track: HTMLElement, currentFace: HTMLElement, newChar: string): void {
+    const nextFace = this.createDigitFace(newChar);
+
+    nextFace.classList.add('zh__digit-face--next');
+
+    track.innerHTML = '';
+    track.append(nextFace, currentFace);
+
+    track.style.transition = 'none';
+    track.style.transform = 'translateY(-100%)';
+
+    void track.offsetHeight;
+
+    track.style.transition = '';
+    track.style.transform = 'translateY(0)';
+
+    const cleanup = () => {
+      track.removeEventListener('transitionend', cleanup);
+
+      if (!track.contains(nextFace)) return;
+
+      this.cleanupTrack(track, nextFace);
+    };
+
+    track.addEventListener('transitionend', cleanup, { once: true });
+
+    const guardMs = this.parseTransitionMs(track) + 150;
+
+    window.setTimeout(cleanup, guardMs || 800);
+  }
+
+  private syncDigitSlot(slot: HTMLElement, char: string, animate: boolean): void {
+    const track = this.ensureDigitTrack(slot);
+    const currentFace = this.getOrCreateCurrentFace(track, char);
+    const currentChar = currentFace.dataset.zhDigit ?? char;
+
+    this.setFaceDigit(currentFace, currentChar);
+
+    if (currentChar === char || !animate || this.mode !== 'scroll') {
+      if (currentChar !== char) this.setFaceDigit(currentFace, char);
+
+      this.cleanupTrack(track, currentFace);
+
+      return;
+    }
+
+    this.animateDigitChange(track, currentFace, char);
   }
 
   private tick(): void {
@@ -644,6 +820,7 @@ class ZeroHour extends HTMLElement {
       }
 
       if (!this.styleEl) this.styleEl = document.createElement('style');
+
       this.styleEl.textContent = styles;
 
       return;
@@ -693,7 +870,9 @@ export function initCountdownTimers(
     const notified = new WeakSet<HTMLElement>();
     const notifyOnce = (el: HTMLElement) => {
       if (notified.has(el)) return;
+
       notified.add(el);
+
       onDone(el);
     };
 
@@ -713,7 +892,6 @@ export function initCountdownTimers(
       const zh = el as unknown as ZeroHour;
 
       if (typeof stylesheet === 'string') zh.adoptStyles(stylesheet);
-
       else zh.adoptStylesheet(stylesheet);
     });
   }
