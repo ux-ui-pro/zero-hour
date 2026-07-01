@@ -1,42 +1,39 @@
-<p align="center"><strong>zero-hour</strong></p>
+# zero-hour
 
-<div align="center">
-<p align="center">ZeroHour is a tiny countdown Web Component. It registers <code>&lt;countdown-timer&gt;</code> that renders a <code>DD:HH:MM:SS</code> countdown (with configurable visible units), counts down to a target date/time with an optional UTC offset, ticks on exact second boundaries, and fires a <code>done</code> event when it reaches zero.</p>
+Tiny countdown Web Component that registers `<countdown-timer>` with a configurable DD:HH:MM:SS display.
 
 [![npm](https://img.shields.io/npm/v/zero-hour.svg?colorB=brightgreen)](https://www.npmjs.com/package/zero-hour)
-[![GitHub package version](https://img.shields.io/github/package-json/v/ux-ui-pro/zero-hour.svg)](https://github.com/ux-ui-pro/zero-hour)
-[![NPM Downloads](https://img.shields.io/npm/dm/zero-hour.svg?style=flat)](https://www.npmjs.org/package/zero-hour)
+[![NPM Downloads](https://img.shields.io/npm/dm/zero-hour.svg?style=flat)](https://www.npmjs.com/package/zero-hour)
 
-<a href="https://codepen.io/ux-ui/pen/MYyMpPw">Demo</a>
-</div>
-<br>
+[Demo](https://codepen.io/ux-ui/pen/MYyMpPw)
 
-➠ **Install**
+---
 
-```console
-yarn add zero-hour
-```
-<br>
+- Registers `<countdown-timer>` via `customElements.define` on import.
+- Configurable visible units (`d`, `h`, `m`, `s`) and UTC offset for the target moment.
+- Ticks on exact second boundaries; fires a `done` event once when the countdown reaches zero.
+- Optional digit sprites with `static` or `scroll` transition mode.
+- Built-in CSS sidecar and `zeroHourCssText` export for shadow-root styling.
 
-➠ **Import**
+---
 
-```javascript
-// Registers <countdown-timer> via customElements.define(...)
-import 'zero-hour';
+## Installation
 
-// Optional helper: subscribe to `done` and apply stylesheets
-import { initCountdownTimers } from 'zero-hour';
-```
-<br>
-
-➠ **Usage**
-
-```javascript
-// After importing 'zero-hour', the element is registered.
-// Then just place <countdown-timer> in your HTML (see below).
+```bash
+npm install zero-hour
 ```
 
-<sub>HTML: default start (autostart=true)</sub>
+Optional stylesheet (sidecar):
+
+```bash
+# import in your bundler entry, or link in HTML:
+# import 'zero-hour/zero-hour.css';
+```
+
+## Quick Start
+
+Import the package to register the element, then place it in your markup:
+
 ```html
 <countdown-timer
   digits-url="/sprites/digits.webp"
@@ -47,113 +44,112 @@ import { initCountdownTimers } from 'zero-hour';
 ></countdown-timer>
 ```
 
-<sub>JS: subscribe to completion + optional styles</sub>
-```javascript
-import { initCountdownTimers } from 'zero-hour';
+```js
+import 'zero-hour';
+```
+
+Subscribe to completion and apply optional styles:
+
+```js
+import { initCountdownTimers, zeroHourCssText } from 'zero-hour';
 
 initCountdownTimers({
   selector: 'countdown-timer',
   onDone: (el) => {
-    // The component dispatches: el.dispatchEvent(new CustomEvent('done'))
-    // Note: if the timer is already complete (e.g. user opened the page after the target time),
-    // `initCountdownTimers` will call `onDone` immediately (catch-up).
     el.classList.add('is-done');
   },
-  // Optional styles:
-  // - CSSStyleSheet (constructable stylesheet)
-  // - string (e.g. imported via ?raw from your CSS/SCSS pipeline)
-  // stylesheet: myCssStyleSheet,
+  stylesheet: zeroHourCssText,
 });
 ```
 
-<sub>JS: custom styles from `?raw` (CSS/SCSS)</sub>
-```javascript
+## API
+
+- **`import 'zero-hour'`** — registers `<countdown-timer>` (side effect).
+- **`initCountdownTimers(options?)`** — finds elements, optional `onDone` / `stylesheet` helpers.
+- **`zeroHourCssText`** — minified default CSS text shipped with the package.
+
+Element instance methods (on `<countdown-timer>` after import):
+
+- **`start()`** — starts or restarts the countdown (`digits-url` required).
+- **`stop()`** — stops the timer and clears the scheduled tick.
+- **`reset()`** — clears the done flag; restarts when `autostart=true`.
+- **`isRunning()`** — `true` when a tick is scheduled.
+- **`isDone()`** — `true` when the target moment is in the past.
+- **`adoptStylesheet(sheet)`** — replaces `adoptedStyleSheets` in the shadow root.
+- **`adoptStyles(text)`** — applies CSS text via constructable stylesheet or `<style>` fallback.
+
+## Options
+
+| Option (attribute) | Type | Default | Description |
+|:-------------------|:-----|:--------|:------------|
+| `digits-url` | `string` | — | URL to the digits sprite sheet. Required for the graphical display. |
+| `separator-url` | `string` | `null` | URL to the separator sprite (e.g. colon). Omit to hide separators. |
+| `autostart` | `boolean` | `true` | Auto-start on connect (`autostart` or `autostart="false"`). |
+| `date` | `YYYY-MM-DD` | — | Target date. Without `date` the timer resolves to zero. |
+| `time` | `HH:MM[:SS]` | `00:00:00` | Target time. |
+| `utc` | `UTC±H[:MM]` or `±H[:MM]` | `UTC+0` | UTC offset for the target moment (e.g. `UTC+03:00`, `UTC-5`). |
+| `units` | `string` | `"d:h:m:s"` | Visible groups using `d`, `h`, `m`, `s` separated by `:` (e.g. `"h:m:s"`). |
+| `mode` | `"static"` \| `"scroll"` | `"static"` | Digit transition mode (`scroll` = rolling effect). |
+
+## Events
+
+| Event | Description |
+|:------|:------------|
+| `done` | Fired once when the countdown reaches zero (again after `reset()`). |
+
+## Methods
+
+```js
+initCountdownTimers({
+  selector?: string;           // default: 'countdown-timer'
+  onDone?: (el: HTMLElement) => void;
+  stylesheet?: CSSStyleSheet | string | null;
+}): HTMLElement[]
+```
+
+If a timer is already complete at init time, `onDone` is called immediately (catch-up).
+
+## Styling
+
+Default package CSS:
+
+```js
+import { initCountdownTimers, zeroHourCssText } from 'zero-hour';
+
+initCountdownTimers({ stylesheet: zeroHourCssText });
+```
+
+Or import the sidecar file in your bundler:
+
+```js
+import 'zero-hour/zero-hour.css';
+```
+
+Custom CSS text from your pipeline:
+
+```js
 import { initCountdownTimers } from 'zero-hour';
 import ZeroHourCss from './assets/scss/components/zero-hour.scss?raw';
 
-initCountdownTimers({
-  stylesheet: ZeroHourCss,
-});
+initCountdownTimers({ stylesheet: ZeroHourCss });
 ```
 
-<sub>JS: default styles shipped with the package</sub>
-```javascript
-import { initCountdownTimers, zeroHourCssText } from 'zero-hour';
+Manual control:
 
-// Option A: use the built-in CSS text export
-initCountdownTimers({
-  stylesheet: zeroHourCssText,
-});
-
-// Option B: import the package CSS file as raw text (your bundler must support ?raw)
-// import ZeroHourCss from 'zero-hour/zero-hour.css?raw';
-// initCountdownTimers({ stylesheet: ZeroHourCss });
-```
-
-<sub>JS: manual control (start/stop/reset)</sub>
-```javascript
+```js
 const el = document.querySelector('countdown-timer');
-// @ts-expect-error: methods exist on the custom element instance after import
 el?.stop();
-// @ts-expect-error
 el?.reset();
-// @ts-expect-error
 el?.start();
 ```
 
-<sub>Units (units)</sub>
-```html
-<countdown-timer
-  digits-url="/sprites/digits.webp"
-  separator-url="/sprites/sep.webp"
-  date="2025-12-31"
-  time="23:59:59"
-  utc="+03:00"
-  units="h:m:s"
-></countdown-timer>
-```
-<br>
+## Notes
 
-➠ **Options**
+- Updates tick on exact second boundaries for a stable display.
+- Days render as two digits, capped at 99.
+- `units` controls visible d/h/m/s groups; separators hide when `separator-url` is unset.
+- Digit sprite is horizontal, frames left-to-right `0–9`; frame index equals the digit value.
 
-| Option (attribute) | Type | Default | Description |
-|:--------------------:|:-----------------------:|:------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `digits-url` | `string` | — | URL to the digits sprite sheet. **Required** for the graphical display (otherwise only a text fallback is updated in the a11y layer). |
-| `separator-url` | `string` | `null` | URL to the separator sprite (e.g. a colon). If omitted, separators are hidden. |
-| `autostart` | `boolean` | `true` | Auto-start on connect. Can be a boolean attribute (`autostart`) or a string (`autostart="false"`). |
-| `date` | `YYYY-MM-DD` | — | Target date. Without `date` the timer resolves to zero. |
-| `time` | `HH:MM[:SS]` | `00:00:00` | Target time. |
-| `utc` | `UTC±H[:MM]` or `±H[:MM]` | `UTC+0` | UTC offset used to compute the target moment. Examples: `utc="UTC+03:00"`, `utc="UTC-5"`. |
-| `units` | `string` | `"d:h:m:s"` | Visible groups pattern using `d`, `h`, `m`, `s` separated by `:` (e.g. `"h:m:s"`). Empty/invalid value falls back to showing all. |
-| `mode` | `"static"` \| `"scroll"` | `"static"` | Digit transition mode. `scroll` animates digits (rolling effect), `static` swaps without scroll. |
+## License
 
-<br>
-
-➠ **API Methods**
-
-| Method | Description |
-|-------------------|--------------------------------------------------------------------------------------------------|
-| `initCountdownTimers({ selector?, onDone?, stylesheet? }): HTMLElement[]` | Finds elements by selector (default: `countdown-timer`), subscribes to the `done` event (when `onDone` is provided), and calls `onDone` immediately if a timer is already complete at init time (catch-up). Also optionally applies styles to each element (`stylesheet?: CSSStyleSheet \| string \| null`). When a string is provided, it is applied via `adoptedStyleSheets` when supported, otherwise via a `<style>` fallback inside the shadow root. |
-| `start(): void` | Starts/restarts the countdown (only runs when `digits-url` is set). |
-| `stop(): void` | Stops the timer and clears the scheduled tick. |
-| `reset(): void` | Clears the “done fired” flag and either starts again (if `autostart=true`) or renders a static initial value. |
-| `isRunning(): boolean` | Returns `true` if the timer is running and the next tick is scheduled. |
-| `isDone(): boolean` | Returns `true` if the computed target moment is in the past (logically complete), regardless of whether a `done` event listener was attached in time. |
-| `adoptStylesheet(sheet: CSSStyleSheet): void` | Replaces `adoptedStyleSheets` inside the component’s shadow root. |
-
-<br>
-
-➠ **Notes**
-
-- Updates tick **exactly on second boundaries** (schedules the next tick to the next full second) to keep the display stable.
-- Days render as **two digits** and are capped at **99**.
-- `units` controls which groups (d/h/m/s) are visible. Separators are auto-hidden when `separator-url` is not set, or when a separator is not needed between visible groups.
-- `mode="scroll"` enables rolling digit transitions; default is `static` (no scroll).
-- The `done` event fires once per run (after `reset()` it can fire again).
-- Digit sprite must be horizontal, frames left-to-right: `0,1,2,3,4,5,6,7,8,9`. The frame index equals the digit.
-
-<br>
-
-➠ **License**
-
-zero-hour is released under MIT license
+MIT

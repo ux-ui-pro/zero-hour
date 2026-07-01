@@ -1,4 +1,5 @@
-import DEFAULT_CSS_TEXT from './zero-hour.css?raw';
+import './zero-hour.css';
+import DEFAULT_CSS_TEXT from './zero-hour.css?inline';
 
 export const zeroHourCssText: string = DEFAULT_CSS_TEXT;
 
